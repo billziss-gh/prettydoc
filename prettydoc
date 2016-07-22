@@ -1,0 +1,308 @@
+#!/usr/bin/env python
+
+# prettydoc(1)
+# ============
+#
+# NAME
+# ----
+# prettydoc - extract documentation from source files
+#
+# SYNOPSIS
+# --------
+# prettydoc OPTIONS file...
+#
+# DESCRIPTION
+# -----------
+# The *prettydoc* utility is a wrapper around Apple's *headerdoc2html* that
+# can produce output in a variety of formats using a simple template engine.
+#
+# For information on the source code documentation format accepted by
+# *headerdoc* and thence *prettydoc* please refer to the *headerdoc*
+# documentation online.
+#
+# *Prettydoc* invokes *headerdoc2html* with the *-j* (allow javadoc-style
+# comments) and *-X* (produce XML) options. It then processes the XML
+# output and feeds it into its template engine, which allows for output in
+# various formats. The currently supported formats are html, man, markdown.
+#
+# PYTHON TEMPLATE LANGUAGE
+# ------------------------
+# *Prettydoc* templates are written in the Python Template Language.
+# They are essentially Python source code with the addition of a single new
+# feature, the *:* construct.
+#
+# The *:* construct is a shortcut for embedding text to be output in Python
+# source. Everything placed after a *:* will be copied to the output, Python
+# expressions can also be inserted by using the *${ python expression }*
+# construct (similar to shell expansion).
+#
+# Example:
+#
+#     : <summary>
+#     : <div class="summary">
+#     : <h1 class="${elem.tag}-name">${name}</h1>
+#     if abst:
+#         : <div class="${elem.tag}-abstract">${abst}</div>
+#     : </div>
+#     : </summary>
+#
+# PRETTYDOC TEMPLATES
+# -------------------
+# *Prettydoc* templates are required to define the following Python functions:
+# file_extension, passes, head, foot, group, section, item_head, item, item_foot
+#
+# Refer to the bundled templates for examples.
+#
+# OPTIONS
+# -------
+# -n, --name-simplify::
+#     Simplify output filenames/titles (specify this option multiple times for
+#     more simplification)
+# -g, --include-empty-groups::
+#     Include empty source code groups in output
+# -t, --scm-timestamp::
+#     Use SCM timestamp as "last updated" (currently only git supported)
+# -f {html,man,markdown}, --output-format {html,man,markdown}::
+#     Output format to use
+# -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY::
+#     Where to place the resulting files
+# -H HEADERDOC_ARG, --headerdoc-arg HEADERDOC_ARG::
+#     Additional arguments to pass to headerdoc
+# -S STYLESHEET, --stylesheet STYLESHEET::
+#     CSS stylesheet to use
+# -T TEMPLATE, --template TEMPLATE::
+#     Template to use
+#
+# COPYRIGHT
+# ---------
+# (C) 2014-2015 Bill Zissimopoulos
+
+import argparse
+import os
+import pytempl
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import xml.etree.ElementTree as ET
+
+from collections import OrderedDict
+from datetime import datetime
+from glob import glob
+
+section_names = [
+    "classes", "functions", "methods", "properties",
+    "membervars", "globals", "constants", "typedefs",
+    "structs_and_unions", "enums", "defines"
+]
+def pretty_section_title(elem, name):
+    if name == "functions":
+        if elem.tag in ["class", "category", "protocol", "com_interface"]:
+            return "Member Functions"
+        else:
+            return "Functions"
+    elif name == "methods":
+        return "Methods"
+    elif name == "properties":
+        return "Properties"
+    elif name == "members":
+        return "Members"
+    elif name == "globals":
+        if elem.tag in ["class"]:
+            return "Member Variables"
+        else:
+            return "Globals"
+    elif name == "constants":
+        return "Constants"
+    elif name == "typedefs":
+        return "Typedefs"
+    elif name == "structs_and_unions":
+        return "Structs and Unions"
+    elif name == "enums":
+        return "Enums"
+    elif name == "defines":
+        return "Macro Definitions"
+    elif name == "classes":
+        return "Classes"
+def inner_text(elem):
+    if elem is None:
+        return ""
+    return (elem.text or "") + "".join(inner_text(e) for e in elem) + (elem.tail or "")
+def pretty_abstract(elem):
+    desc = elem.find("desc")
+    if desc is not None:
+        if elem.find("abstract") is None:
+            para = desc.find("p")
+            if para is not None:
+                desc.remove(para)
+                abst = ET.SubElement(elem, "abstract")
+                abst.append(para)
+        if inner_text(desc).strip() == "":
+            elem.remove(desc)
+def pretty_element(elem, ofile, pass_, level):
+    pretty_abstract(elem)
+    groups = elem.find("groups")
+    if groups is not None:
+        for e in groups:
+            pretty_abstract(e)
+        groups = OrderedDict((e.findtext("name"), (e, [])) for e in groups)
+    else:
+        groups = OrderedDict()
+    groups["Miscellaneous"] = (None, [])
+    for n in section_names:
+        section = elem.find(n)
+        if section is None:
+            continue
+        for e in section:
+            g = e.findtext("group") or "Miscellaneous"
+            groups[g][1].append((n, e))
+    args.template.item_head(pass_, elem)
+    args.template.item(pass_, elem)
+    for g in groups:
+        g, pairs = groups[g]
+        if g is not None and (pairs or args.include_empty_groups):
+            args.template.group(pass_, g)
+        prev_name = None
+        for n, e in pairs:
+            if n != prev_name:
+                args.template.section(pass_, elem, pretty_section_title(elem, n))
+                prev_name = n
+            pretty_element(e, ofile, pass_, level + 1)
+    args.template.item_foot(pass_, elem)
+def prettydoc(elem, ofile):
+    args.template._ = ofile
+    args.template.stylesheet = args.stylesheet
+    args.template.head(elem)
+    if elem.tag in ["header", "framework"]:
+        for p in args.template.passes(elem):
+            pretty_element(elem, ofile, p, 0)
+    args.template.foot(elem)
+
+def info(s):
+    print "%s: %s" % (os.path.basename(sys.argv[0]), s)
+def warn(s):
+    print >> sys.stderr, "%s: %s" % (os.path.basename(sys.argv[0]), s)
+def fail(s, exitcode = 1):
+    warn(s)
+    sys.exit(exitcode)
+def mkdirs(path):
+    try:
+        os.makedirs(path)
+    except:
+        pass
+def run():
+    tmpdir = None
+    try:
+        for path in args.file:
+            with open(path) as file:
+                pass # preflight opening all files
+        sources = [path for path in args.file if not path.endswith(".xml")]
+        if sources:
+            tmpdir = tempfile.mkdtemp()
+            env = os.environ.copy()
+            env["PERL_PERTURB_KEYS"] = "0"
+            subprocess.check_call(["headerdoc2html", "-qjX", "-o", tmpdir] +\
+                args.headerdoc_arg + sources, env=env)
+        for path in args.file:
+            try:
+                if path.endswith(".xml"):
+                    ipath = path
+                else:
+                    ipath = os.path.basename(path)
+                    ipath = os.path.join(tmpdir, ipath.replace(".", "_"), ipath) + ".xml"
+                with open(ipath) as file:
+                    elem = ET.parse(file).getroot()
+                timestamp = None
+                if args.scm_timestamp:
+                    try:
+                        timestamp = subprocess.check_output(
+                            ["git", "log", "-1", "--format=%at", "--", path])
+                        timestamp = datetime.fromtimestamp(int(timestamp)).date().isoformat()
+                    except:
+                        timestamp = None
+                if timestamp is None:
+                    if elem.find("timestamp") is not None:
+                        timestamp = elem.find("timestamp").text
+                        try:
+                            timestamp = datetime.strptime(timestamp, "%A, %B %d, %Y").\
+                                date().isoformat()
+                        except:
+                            try:
+                                timestamp = datetime.strptime(timestamp, "%B %d, %Y").\
+                                    date().isoformat()
+                            except:
+                                timestamp = None
+                if timestamp is not None:
+                    if elem.find("timestamp") is None:
+                        ET.SubElement(elem, "timestamp")
+                    elem.find("timestamp").text = timestamp
+                file_extension = args.template.file_extension()
+                opath = path + file_extension
+                if args.name_simplify:
+                    name = elem.findtext("name")
+                    if name and re.search(r"[/\\.]\S", name):
+                        if 1 < args.name_simplify:
+                            name = os.path.basename(name)
+                        name = os.path.splitext(name)[0]
+                        name = name.replace('/', '_').replace('\\', '_').replace('.', '_')
+                        elem.find("name").text = name
+                        opath = os.path.join(os.path.dirname(path), name) + file_extension
+                if args.output_directory:
+                    mkdirs(args.output_directory)
+                    opath = os.path.join(args.output_directory, os.path.basename(opath))
+                with open(opath, "w") as ofile:
+                    info("%s -> %s" % (path, opath))
+                    prettydoc(elem, ofile)
+            except EnvironmentError, ex:
+                warn(ex)
+            except ET.ParseError, ex:
+                warn(ex)
+    finally:
+        if tmpdir:
+            shutil.rmtree(tmpdir)
+def main():
+    global args
+    progdir = os.path.dirname(sys.argv[0])
+    formats = [os.path.basename(f)[:-len(".pyt")]
+        for f in glob(os.path.join(os.path.join(progdir, "prettydoc-templ", "*.pyt")))]
+    p = argparse.ArgumentParser()
+    p.add_argument("-n", "--name-simplify", action="count",
+        help="Simplify output filenames/titles (specify this option multiple times for more simplification)")
+    p.add_argument("-g", "--include-empty-groups", action="store_true",
+        help="Include empty source code groups in output")
+    p.add_argument("-t", "--scm-timestamp", action="store_true",
+        help="Use SCM timestamp as \"last updated\" (currently only git supported)")
+    p.add_argument("-f", "--output-format", choices=formats, default="html",
+        help="Output format to use")
+    p.add_argument("-o", "--output-directory",
+        help="Where to place the resulting files")
+    p.add_argument("-H", "--headerdoc-arg", action="append", default=[],
+        help="Additional arguments to pass to headerdoc")
+    p.add_argument("-S", "--stylesheet",
+        help="CSS stylesheet to use")
+    p.add_argument("-T", "--template",
+        help="Template to use")
+    p.add_argument("file", nargs="+")
+    args = p.parse_args(sys.argv[1:])
+    if args.stylesheet is None:
+        args.stylesheet = os.path.abspath(os.path.join(progdir,
+            "prettydoc-templ", args.output_format + ".css"))
+    if args.template is None:
+        args.template = os.path.join(progdir,
+            "prettydoc-templ", args.output_format + ".pyt")
+    args.template = pytempl.template_load(args.template)
+    run()
+
+def __entry():
+    try:
+        main()
+    except EnvironmentError, ex:
+        fail(ex)
+    except subprocess.CalledProcessError, ex:
+        fail(ex)
+    except KeyboardInterrupt:
+        fail("interrupted", 130)
+
+if "__main__" == __name__:
+    __entry()

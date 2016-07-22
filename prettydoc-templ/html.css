@@ -1,0 +1,283 @@
+*
+{
+    margin: 0;
+    padding: 0;
+}
+html
+{
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 62.5%;
+}
+body
+{
+    font-size: 1.4rem;
+    background-color: #f2f2f2;
+}
+h1, h2, h3, p
+{
+    margin-bottom: 1em;
+}
+h1.header-name, h1.framework-name
+{
+    font-size: 2.8rem;
+    font-weight: 100;
+}
+h1.class-name, h1.category-name, h1.protocol-name, h1.com_interface-name,
+h1.method-name, h1.property-name, h1.function-name, h1.variable-name, h1.constant-name,
+h1.struct-name, h1.union-name, h1.enum-name, h1.typedef-name,
+h1.pdefine-name
+{
+    color: #0088cc;
+    font-size: 1.4rem;
+    font-weight: normal;
+}
+h2[class$="-groupinfo-name"]
+{
+    color: #808080;
+    font-size: 2.2rem;
+    font-weight: 100;
+    margin-top: 1em;
+}
+h2[class$="-fieldlist"], h2[class$="-callbacks"], h2[class$="-parameterlist"],
+h2[class$="-result"], h2[class$="-throwlist"], h2[class$="-desc"], h2[class$="-see"]
+{
+    color: #000000;
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+h3.section
+{
+    color: #000000;
+    font-size: 1.8rem;
+    font-weight: 100;
+}
+div.page-container
+{
+    margin: 10px;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid #e9e9e9;
+}
+div.summary
+{
+    display: table;
+    width: 100%;
+    margin-bottom: 1em;
+}
+summary h1[class$="-name"]
+{
+    display: table-cell;
+    width: 20em;
+    padding-right: 0.5em;
+}
+summary div[class$="-abstract"]
+{
+    display: table-cell;
+    padding-left: 0.5em;
+}
+summary div[class$="-abstract"] > p:last-child
+{
+    margin-bottom:0;
+}
+div.collapsible
+{
+    margin-bottom:1em;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #e9e9e9;
+    position: relative;
+}
+div.collapsible div.collapsible
+{
+    background-color: #f3f3f3;
+}
+div.collapsible div.collapsible div.collapsible
+{
+    background-color: #ededed;
+}
+div.collapsible div.collapsible div.collapsible div.collapsible
+{
+    background-color: #e7e7e7;
+}
+div.collapsible div.collapsible div.collapsible div.collapsible div.collapsible
+{
+    background-color: #e1e1e1;
+}
+div.collapsible > pre:last-child,
+div.collapsible > table:last-child tr:last-child p:last-child,
+div.collapsible > *:last-child > p:last-child,
+div.collapsible > *:last-child div.collapsible:last-child
+{
+    margin-bottom:0;
+}
+div.pointy-thing
+{
+    background-color: inherit;
+    border-left-style: solid;
+    border-top-style: solid;
+    border-color: #e9e9e9;
+    border-width: 1px;
+    height: 12px;
+    width: 12px;
+    top:-7px;
+    left:1em;
+    position: absolute;
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+div.copyright
+{
+    color: #a0a0a0;
+    font-size: 1rem;
+    margin-top: 4em;
+}
+summary
+{
+    outline: None;
+}
+summary::-webkit-details-marker
+{
+    display: none;
+}
+td[class$="-name"]
+{
+    font-family: Menlo, monospace;
+    font-style: italic;
+    font-size: 1.2rem;
+    vertical-align: baseline;
+    padding-right: 0.5em;
+}
+td[class$="-desc"]
+{
+    font-size: 1.4rem;
+    vertical-align: baseline;
+    padding-left: 0.5em;
+}
+a[class$="-see"]
+{
+    color: #0088cc;
+    font-size: 1.4rem;
+    font-weight: normal;
+    text-decoration: None;
+}
+pre, code
+{
+    font-family: Menlo, monospace;
+    font-size: 1.2rem;
+}
+pre[class$="-declaration"]
+{
+    border-left: 5px solid rgba(0,155,51,.2);
+    margin-bottom: 20px;
+    overflow: auto;
+    padding: 8px;
+    text-align: left;
+    word-wrap: normal;
+}
+ul
+{
+    list-style: none;
+    margin-left: 1.5rem;
+}
+ul > li
+{
+    position: relative;
+}
+ul > li::before
+{
+    content: "\02022";
+    font-size: 1.5rem;
+    left: -1em;
+    position: absolute;
+}
+ul ul > li::before
+{
+    content: "\025e6";
+    font-size: 1.5rem;
+    left: -1em;
+    position: absolute;
+}
+ul ul ul > li::before
+{
+    content: "\025aa";
+    font-size: 1.5rem;
+    left: -1em;
+    position: absolute;
+}
+ol
+{
+    counter-reset: ol;
+    list-style: none;
+    margin-left: 1.5rem;
+}
+ol > li
+{
+    position: relative;
+    padding-left: 1.0rem;
+}
+ol li::before
+{
+    counter-increment: ol;
+    content: counter(ol) ".";
+    left: -1.5rem;
+    position: absolute;
+}
+a
+{
+    color: #0088cc;
+    font-size: 1.4rem;
+    font-weight: normal;
+    text-decoration: none;
+}
+span.dcmt
+{
+    color: rgba(0,116,0,1);
+}
+span.dstr
+{
+    color: rgba(28,0,207,1);
+}
+span.dchr
+{
+    color: rgba(28,0,207,1);
+}
+span.dpre
+{
+    color: rgba(100,56,32,1);
+}
+span.dnum
+{
+    color: rgba(28,0,207,1);
+}
+span.dkwd
+{
+    color: rgba(0,0,128,1);
+}
+span.dfun
+{
+    color: rgba(111,65,167,1);
+}
+span.dvar
+{
+    color: rgba(65,65,65,1);
+    font-style: italic;
+}
+span.dtpl
+{
+    color: rgba(111,65,167,1);
+}
+span.dtyp
+{
+    color: rgba(184,51,161,1);
+}
+span.dpar
+{
+    color: rgba(65,65,65,1);
+    font-style: italic;
+}
+span.davm
+{
+    color: rgba(100,56,32,1);
+}
