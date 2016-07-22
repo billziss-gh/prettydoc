@@ -156,6 +156,8 @@ def pretty_element(elem, ofile, pass_, level):
             continue
         for e in section:
             g = e.findtext("group") or "Miscellaneous"
+            if g not in groups:
+                g = "Miscellaneous"
             groups[g][1].append((n, e))
     args.template.item_head(pass_, elem)
     args.template.item(pass_, elem)
