@@ -1,0 +1,12 @@
+#!/bin/bash
+
+tmp="/tmp/$(basename "$0").$$"
+trap "rm -rf \"$tmp\"" EXIT
+
+cd "$(dirname "$0")"
+
+../prettydoc -H-O -S../prettydoc-templ/html.css -t -o "$tmp" *.h
+
+for f in *.h.html; do
+    cmp $f "$tmp/$f" >/dev/null && echo "OK $f" 1>&2 || echo "KO $f" 1>&2
+done
