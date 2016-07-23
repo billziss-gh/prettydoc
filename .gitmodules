@@ -1,0 +1,3 @@
+[submodule "headerdoc"]
+	path = headerdoc
+	url = https://github.com/billziss-gh/headerdoc.git
