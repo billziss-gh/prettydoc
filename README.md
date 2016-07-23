@@ -23,4 +23,4 @@ Full instructions:
     $ make -C headerdoc             # headerdoc is written in Perl and C
     $ tst/run-tests
 
-Prettydoc runs on OSX, Linux and Windows/Cygwin. Before running you may have to install the following dependencies needed for 
+Prettydoc runs on OSX, Linux and Windows/Cygwin.
