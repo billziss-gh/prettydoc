@@ -6,7 +6,15 @@ Prettydoc can produce output in different formats: html, manpage, markdown.
 
 Prettydoc is a wrapper around Apple's headerdoc.
 The project includes a patched version of headerdoc as a submodule.
-Before using prettydoc you must first build headerdoc.
+Headerdoc has a few dependencies and must be built before it can be used with prettydoc.
+
+Headerdoc dependencies include the following (some of them may already be satisfied in your system):
+
+* libxml2-dev
+* HTML::Entities
+* Tie::IxHash
+* xmllint
+
 Full instructions:
 
     $ git clone https://github.com/billziss-gh/prettydoc.git
@@ -15,4 +23,4 @@ Full instructions:
     $ make -C headerdoc             # headerdoc is written in Perl and C
     $ tst/run-tests
 
-Prettydoc runs on OSX, Linux and Windows/Cygwin.
+Prettydoc runs on OSX, Linux and Windows/Cygwin. Before running you may have to install the following dependencies needed for 
