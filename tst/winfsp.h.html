@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="../prettydoc-templ/html.css">
+</head>
+<body>
+<div class="page-container">
+<a id="//apple_ref/doc/header/winfsp.h" name="//apple_ref/doc/header/winfsp.h"></a>
+<a id="winfsp/winfsp.h" name="winfsp/winfsp.h"></a>
+<div class="summary">
+<h1 class="header-name">winfsp/winfsp.h</h1>
+<div class="header-abstract"><p>WinFsp User Mode API.
+</p>
+</div>
+</div>
+<div class="header-desc"><p>In order to use the WinFsp API the user mode file system must include &lt;winfsp/winfsp.h&gt;
+and link with the winfsp_x64.dll (or winfsp_x86.dll) library.</p></div>
+<h2 class="groupinfo-groupinfo-name">File System</h2>
+<div class="groupinfo-groupinfo-abstract"><p>A user mode file system is a program that uses the WinFsp API to expose a file system to
+Windows. The user mode file system must implement the operations in FSP_FILE_SYSTEM_INTERFACE,
+create a file system object using FspFileSystemCreate and start its dispatcher using
+FspFileSystemStartDispatcher. At that point it will start receing file system requests on the
+FSP_FILE_SYSTEM_INTERFACE operations.</p></div>
+<h3 class="section">Classes</h3>
+<a id="//apple_ref/c/cl/FSP_FILE_SYSTEM_INTERFACE" name="//apple_ref/c/cl/FSP_FILE_SYSTEM_INTERFACE"></a>
+<a id="FSP_FILE_SYSTEM_INTERFACE" name="FSP_FILE_SYSTEM_INTERFACE"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="com_interface-name">FSP_FILE_SYSTEM_INTERFACE</h1>
+<div class="com_interface-abstract"><p>File system interface.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<h2 class="com_interface-desc">Discussion</h2>
+<div class="com_interface-desc"><p>The operations in this interface must be implemented by the user mode
+file system.</p></div>
+<h3 class="section">Member Functions</h3>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/CanDelete" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/CanDelete"></a>
+<a id="CanDelete" name="CanDelete"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">CanDelete</h1>
+<div class="function-abstract"><p>Determine whether a file or directory can be deleted.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">CanDelete</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>,
+    <span class="dtyp">PWSTR</span> <span class="dpar">FileName</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file or directory to test for deletion.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileName</p></td>
+<td class="function-parameter-desc"><p>The name of the file or directory to test for deletion.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>This function tests whether a file or directory can be safely deleted. This function does
+not need to perform access checks, but may performs tasks such as check for empty
+directories, etc.
+</p>
+<p>This function should <b>NEVER</b> delete the file or directory in question. Deletion should
+happen during Cleanup with Delete==TRUE.
+</p>
+<p>This function gets called when Win32 API's such as DeleteFile or RemoveDirectory are used.
+It does not get called when a file or directory is opened with FILE_DELETE_ON_CLOSE.
+</p>
+</div>
+<h2 class="function-see">See Also</h2>
+<div class="function-see">
+<a class="function-see" href="#Cleanup">Cleanup</a>
+<br>
+</div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Cleanup" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Cleanup"></a>
+<a id="Cleanup" name="Cleanup"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">Cleanup</h1>
+<div class="function-abstract"><p>Cleanup a file.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">VOID</span> ( <span class="dtyp">*</span><span class="dfun">Cleanup</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>,
+    <span class="dtyp">PWSTR</span> <span class="dpar">FileName</span>,
+    <span class="dtyp">BOOLEAN</span> <span class="dpar">Delete</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file or directory to cleanup.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileName</p></td>
+<td class="function-parameter-desc"><p>The name of the file or directory to cleanup. Sent only when a Delete is requested.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Delete</p></td>
+<td class="function-parameter-desc"><p>Determines whether to delete the file. Note that there is no way to report failure of
+this operation. Also note that when this parameter is TRUE this is the last outstanding
+cleanup for this particular file node.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>When CreateFile is used to open or create a file the kernel creates a kernel mode file
+object (type FILE_OBJECT) and a handle for it, which it returns to user-mode. The handle may
+be duplicated (using DuplicateHandle), but all duplicate handles always refer to the same
+file object. When all handles for a particular file object get closed (using CloseHandle)
+the system sends a Cleanup request to the file system.
+</p>
+<p>There will be a Cleanup operation for every Create or Open operation posted to the user mode
+file system. However the Cleanup operation is <b>not</b> the final close operation on a file. The
+file system must be ready to receive additional operations until close time. This is true
+even when the file is being deleted!
+</p>
+<p>An important function of the Cleanup operation is to complete a delete operation. Deleting
+a file or directory in Windows is a three-stage process where the file is first opened, then
+tested to see if the delete can proceed and if the answer is positive the file is then
+deleted during Cleanup.
+</p>
+</div>
+<h2 class="function-see">See Also</h2>
+<div class="function-see">
+<a class="function-see" href="#Close">Close</a>
+<br>
+<a class="function-see" href="#CanDelete">CanDelete</a>
+<br>
+</div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Close" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Close"></a>
+<a id="Close" name="Close"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">Close</h1>
+<div class="function-abstract"><p>Close a file.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">VOID</span> ( <span class="dtyp">*</span><span class="dfun">Close</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file or directory to be closed.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Create" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Create"></a>
+<a id="Create" name="Create"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">Create</h1>
+<div class="function-abstract"><p>Create new file or directory.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">Create</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PWSTR</span> <span class="dpar">FileName</span>,
+    <span class="dtyp">BOOLEAN</span> <span class="dpar">CaseSensitive</span>,
+    <span class="dtyp">UINT32</span> <span class="dpar">CreateOptions</span>, 
+    <span class="dtyp">UINT32</span> <span class="dpar">FileAttributes</span>,
+    <span class="dtyp">PSECURITY_DESCRIPTOR</span> <span class="dpar">SecurityDescriptor</span>,
+    <span class="dtyp">UINT64</span> <span class="dpar">AllocationSize</span>, 
+    <span class="dtyp">PVOID</span> <span class="dtyp">*</span><span class="dpar">PFileNode</span>,
+    <span class="dtyp">FSP_FSCTL_FILE_INFO</span> <span class="dtyp">*</span><span class="dpar">FileInfo</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileName</p></td>
+<td class="function-parameter-desc"><p>The name of the file or directory to be created.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>CaseSensitive</p></td>
+<td class="function-parameter-desc"><p>Whether to treat the FileName as case-sensitive or case-insensitive. Case-sensitive
+file systems always treat FileName as case-sensitive regardless of this parameter.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>CreateOptions</p></td>
+<td class="function-parameter-desc"><p>Create options for this request. This parameter has the same meaning as the
+CreateOptions parameter of the NtCreateFile API. User mode file systems should typically
+only be concerned with the flag FILE_DIRECTORY_FILE, which is an instruction to create a
+directory rather than a file. Some file systems may also want to pay attention to the
+FILE_NO_INTERMEDIATE_BUFFERING and FILE_WRITE_THROUGH flags, although these are
+typically handled by the FSD component.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileAttributes</p></td>
+<td class="function-parameter-desc"><p>File attributes to apply to the newly created file or directory.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>SecurityDescriptor</p></td>
+<td class="function-parameter-desc"><p>Security descriptor to apply to the newly created file or directory. This security
+descriptor will always be in self-relative format. Its length can be retrieved using the
+Windows GetSecurityDescriptorLength API.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>AllocationSize</p></td>
+<td class="function-parameter-desc"><p>Allocation size for the newly created file.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PFileNode</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer that will receive the file node on successful return from this call. The file
+node is a void pointer (or an integer that can fit in a pointer) that is used to
+uniquely identify an open file. Opening the same file name should always return the same
+file node value for as long as the file with that name remains open anywhere in the
+system. The file system can place any value it needs here.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileInfo</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a structure that will receive the file information on successful return
+from this call. This information includes file attributes, file times, etc.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Flush" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Flush"></a>
+<a id="Flush" name="Flush"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">Flush</h1>
+<div class="function-abstract"><p>Flush a file or volume.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">Flush</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file to be flushed. When NULL the whole volume is being flushed.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>Note that the FSD will also flush all file/volume caches prior to invoking this operation.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/GetFileInfo" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/GetFileInfo"></a>
+<a id="GetFileInfo" name="GetFileInfo"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">GetFileInfo</h1>
+<div class="function-abstract"><p>Get file or directory information.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">GetFileInfo</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>, 
+    <span class="dtyp">FSP_FSCTL_FILE_INFO</span> <span class="dtyp">*</span><span class="dpar">FileInfo</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file or directory to get information for.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileInfo</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a structure that will receive the file information on successful return
+from this call. This information includes file attributes, file times, etc.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/GetReparsePoint" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/GetReparsePoint"></a>
+<a id="GetReparsePoint" name="GetReparsePoint"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">GetReparsePoint</h1>
+<div class="function-abstract"><p>Get reparse point.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">GetReparsePoint</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>, 
+    <span class="dtyp">PWSTR</span> <span class="dpar">FileName</span>,
+    <span class="dtyp">PVOID</span> <span class="dpar">Buffer</span>,
+    <span class="dtyp">PSIZE_T</span> <span class="dpar">PSize</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the reparse point.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileName</p></td>
+<td class="function-parameter-desc"><p>The file name of the reparse point.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Buffer</p></td>
+<td class="function-parameter-desc"><p>Pointer to a buffer that will receive the results of this operation.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PSize</p></td>
+<td class="function-parameter-desc"><p>[in,out]
+Pointer to the buffer size. On input it contains the size of the buffer.
+On output it will contain the actual size of data copied.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>The behavior of this function depends on the value of FSP_FSCTL_VOLUME_PARAMS ::
+SymbolicLinksOnly. If the value of SymbolicLinksOnly is FALSE the file system
+support full reparse points and this function is expected to fill the buffer
+with a full reparse point. If the value of SymbolicLinksOnly is TRUE the file
+system supports symbolic links only as reparse points and this function is
+expected to fill the buffer with the symbolic link path.
+</p>
+</div>
+<h2 class="function-see">See Also</h2>
+<div class="function-see">
+<a class="function-see" href="#SetReparsePoint">SetReparsePoint</a>
+<br>
+</div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/GetSecurity" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/GetSecurity"></a>
+<a id="GetSecurity" name="GetSecurity"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">GetSecurity</h1>
+<div class="function-abstract"><p>Get file or directory security descriptor.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">GetSecurity</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>, 
+    <span class="dtyp">PSECURITY_DESCRIPTOR</span> <span class="dpar">SecurityDescriptor</span>,
+    <span class="dtyp">SIZE_T</span> <span class="dtyp">*</span><span class="dpar">PSecurityDescriptorSize</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file or directory to get the security descriptor for.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>SecurityDescriptor</p></td>
+<td class="function-parameter-desc"><p>Pointer to a buffer that will receive the file security descriptor on successful return
+from this call. May be NULL.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PSecurityDescriptorSize</p></td>
+<td class="function-parameter-desc"><p>[in,out]
+Pointer to the security descriptor buffer size. On input it contains the size of the
+security descriptor buffer. On output it will contain the actual size of the security
+descriptor copied into the security descriptor buffer. Cannot be NULL.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/GetSecurityByName" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/GetSecurityByName"></a>
+<a id="GetSecurityByName" name="GetSecurityByName"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">GetSecurityByName</h1>
+<div class="function-abstract"><p>Get file or directory attributes and security descriptor given a file name.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">GetSecurityByName</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">PWSTR</span> <span class="dpar">FileName</span>,
+    <span class="dtyp">PUINT32</span> <span class="dpar">PFileAttributes</span>, 
+    <span class="dtyp">PSECURITY_DESCRIPTOR</span> <span class="dpar">SecurityDescriptor</span>,
+    <span class="dtyp">SIZE_T</span> <span class="dtyp">*</span><span class="dpar">PSecurityDescriptorSize</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileName</p></td>
+<td class="function-parameter-desc"><p>The name of the file or directory to get the attributes and security descriptor for.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PFileAttributes</p></td>
+<td class="function-parameter-desc"><p>Pointer to a memory location that will receive the file attributes on successful return
+from this call. May be NULL.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>SecurityDescriptor</p></td>
+<td class="function-parameter-desc"><p>Pointer to a buffer that will receive the file security descriptor on successful return
+from this call. May be NULL.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PSecurityDescriptorSize</p></td>
+<td class="function-parameter-desc"><p>[in,out]
+Pointer to the security descriptor buffer size. On input it contains the size of the
+security descriptor buffer. On output it will contain the actual size of the security
+descriptor copied into the security descriptor buffer. May be NULL.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS, STATUS_REPARSE or error code.
+</p>
+<p>STATUS_REPARSE should be returned by file systems that support reparse points when
+they encounter a FileName that contains reparse points anywhere but the final path
+component.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/GetVolumeInfo" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/GetVolumeInfo"></a>
+<a id="GetVolumeInfo" name="GetVolumeInfo"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">GetVolumeInfo</h1>
+<div class="function-abstract"><p>Get volume information.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">GetVolumeInfo</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">FSP_FSCTL_VOLUME_INFO</span> <span class="dtyp">*</span><span class="dpar">VolumeInfo</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>VolumeInfo</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a structure that will receive the volume information on successful return
+from this call.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Open" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Open"></a>
+<a id="Open" name="Open"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">Open</h1>
+<div class="function-abstract"><p>Open a file or directory.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">Open</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PWSTR</span> <span class="dpar">FileName</span>,
+    <span class="dtyp">BOOLEAN</span> <span class="dpar">CaseSensitive</span>,
+    <span class="dtyp">UINT32</span> <span class="dpar">CreateOptions</span>, 
+    <span class="dtyp">PVOID</span> <span class="dtyp">*</span><span class="dpar">PFileNode</span>,
+    <span class="dtyp">FSP_FSCTL_FILE_INFO</span> <span class="dtyp">*</span><span class="dpar">FileInfo</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileName</p></td>
+<td class="function-parameter-desc"><p>The name of the file or directory to be opened.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>CaseSensitive</p></td>
+<td class="function-parameter-desc"><p>Whether to treat the FileName as case-sensitive or case-insensitive. Case-sensitive
+file systems always treat FileName as case-sensitive regardless of this parameter.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>CreateOptions</p></td>
+<td class="function-parameter-desc"><p>Create options for this request. This parameter has the same meaning as the
+CreateOptions parameter of the NtCreateFile API. User mode file systems typically
+do not need to do anything special with respect to this parameter. Some file systems may
+also want to pay attention to the FILE_NO_INTERMEDIATE_BUFFERING and FILE_WRITE_THROUGH
+flags, although these are typically handled by the FSD component.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PFileNode</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer that will receive the file node on successful return from this call. The file
+node is a void pointer (or an integer that can fit in a pointer) that is used to
+uniquely identify an open file. Opening the same file name should always return the same
+file node value for as long as the file with that name remains open anywhere in the
+system. The file system can place any value it needs here.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileInfo</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a structure that will receive the file information on successful return
+from this call. This information includes file attributes, file times, etc.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Overwrite" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Overwrite"></a>
+<a id="Overwrite" name="Overwrite"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">Overwrite</h1>
+<div class="function-abstract"><p>Overwrite a file.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">Overwrite</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>,
+    <span class="dtyp">UINT32</span> <span class="dpar">FileAttributes</span>,
+    <span class="dtyp">BOOLEAN</span> <span class="dpar">ReplaceFileAttributes</span>, 
+    <span class="dtyp">FSP_FSCTL_FILE_INFO</span> <span class="dtyp">*</span><span class="dpar">FileInfo</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file to overwrite.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileAttributes</p></td>
+<td class="function-parameter-desc"><p>File attributes to apply to the overwritten file.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>ReplaceFileAttributes</p></td>
+<td class="function-parameter-desc"><p>When TRUE the existing file attributes should be replaced with the new ones.
+When FALSE the existing file attributes should be merged (or'ed) with the new ones.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileInfo</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a structure that will receive the file information on successful return
+from this call. This information includes file attributes, file times, etc.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Read" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Read"></a>
+<a id="Read" name="Read"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">Read</h1>
+<div class="function-abstract"><p>Read a file.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">Read</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>,
+    <span class="dtyp">PVOID</span> <span class="dpar">Buffer</span>,
+    <span class="dtyp">UINT64</span> <span class="dpar">Offset</span>,
+    <span class="dtyp">ULONG</span> <span class="dpar">Length</span>, 
+    <span class="dtyp">PULONG</span> <span class="dpar">PBytesTransferred</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file to be read.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Buffer</p></td>
+<td class="function-parameter-desc"><p>Pointer to a buffer that will receive the results of the read operation.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Offset</p></td>
+<td class="function-parameter-desc"><p>Offset within the file to read from.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Length</p></td>
+<td class="function-parameter-desc"><p>Length of data to read.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PBytesTransferred</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a memory location that will receive the actual number of bytes read.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code. STATUS_PENDING is supported allowing for asynchronous
+operation.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/ReadDirectory" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/ReadDirectory"></a>
+<a id="ReadDirectory" name="ReadDirectory"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">ReadDirectory</h1>
+<div class="function-abstract"><p>Read a directory.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">ReadDirectory</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>,
+    <span class="dtyp">PVOID</span> <span class="dpar">Buffer</span>,
+    <span class="dtyp">UINT64</span> <span class="dpar">Offset</span>,
+    <span class="dtyp">ULONG</span> <span class="dpar">Length</span>, 
+    <span class="dtyp">PWSTR</span> <span class="dpar">Pattern</span>, 
+    <span class="dtyp">PULONG</span> <span class="dpar">PBytesTransferred</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the directory to be read.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Buffer</p></td>
+<td class="function-parameter-desc"><p>Pointer to a buffer that will receive the results of the read operation.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Offset</p></td>
+<td class="function-parameter-desc"><p>Offset within the directory to read from. The kernel does not interpret this value
+which is used solely by the file system to locate directory entries. However the
+special value 0 indicates that the read should start from the first entries. The first
+two entries returned by ReadDirectory should always be the "." and ".." entries.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Length</p></td>
+<td class="function-parameter-desc"><p>Length of data to read.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Pattern</p></td>
+<td class="function-parameter-desc"><p>The pattern to match against files in this directory. Can be NULL. The file system
+can choose to ignore this parameter as the FSD will always perform its own pattern
+matching on the returned results.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PBytesTransferred</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a memory location that will receive the actual number of bytes read.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code. STATUS_PENDING is supported allowing for asynchronous
+operation.
+</p></div>
+<h2 class="function-see">See Also</h2>
+<div class="function-see">
+<a class="function-see" href="#FspFileSystemAddDirInfo">FspFileSystemAddDirInfo</a>
+<br>
+</div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Rename" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Rename"></a>
+<a id="Rename" name="Rename"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">Rename</h1>
+<div class="function-abstract"><p>Renames a file or directory.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">Rename</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>, 
+    <span class="dtyp">PWSTR</span> <span class="dpar">FileName</span>,
+    <span class="dtyp">PWSTR</span> <span class="dpar">NewFileName</span>,
+    <span class="dtyp">BOOLEAN</span> <span class="dpar">ReplaceIfExists</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file or directory to be renamed.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileName</p></td>
+<td class="function-parameter-desc"><p>The current name of the file or directory to rename.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>NewFileName</p></td>
+<td class="function-parameter-desc"><p>The new name for the file or directory.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>ReplaceIfExists</p></td>
+<td class="function-parameter-desc"><p>Whether to replace a file that already exists at NewFileName.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>The kernel mode FSD provides certain guarantees prior to posting a rename operation:
+</p>
+<ul>
+<li><p>A file cannot be renamed if it has any open handles, other than the one used to perform
+the rename.</p></li>
+<li><p>A file cannot be renamed if a file with the same name exists and has open handles.</p></li>
+<li><p>A directory cannot be renamed if it or any of its subdirectories contains a file that
+has open handles.</p></li>
+</ul>
+
+</div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/ResolveReparsePoints" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/ResolveReparsePoints"></a>
+<a id="ResolveReparsePoints" name="ResolveReparsePoints"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">ResolveReparsePoints</h1>
+<div class="function-abstract"><p>Resolve reparse points.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">ResolveReparsePoints</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">PWSTR</span> <span class="dpar">FileName</span>,
+    <span class="dtyp">BOOLEAN</span> <span class="dpar">OpenReparsePoint</span>, 
+    <span class="dtyp">PIO_STATUS_BLOCK</span> <span class="dpar">PIoStatus</span>,
+    <span class="dtyp">PVOID</span> <span class="dpar">Buffer</span>,
+    <span class="dtyp">PSIZE_T</span> <span class="dpar">PSize</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileName</p></td>
+<td class="function-parameter-desc"><p>The name of the file or directory to have its reparse points resolved.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>OpenReparsePoint</p></td>
+<td class="function-parameter-desc"><p>If TRUE, the last path component of FileName should not be resolved, even
+if it is a reparse point that can be resolved. If FALSE, all path components
+should be resolved if possible.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PIoStatus</p></td>
+<td class="function-parameter-desc"><p>Pointer to storage that will receive the status to return to the FSD. When
+this function succeeds it must set PIoStatus-&gt;Status to STATUS_REPARSE and
+PIoStatus-&gt;Information to either IO_REPARSE or the reparse tag.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Buffer</p></td>
+<td class="function-parameter-desc"><p>Pointer to a buffer that will receive the resolved file name (IO_REPARSE) or
+reparse data (reparse tag).</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PSize</p></td>
+<td class="function-parameter-desc"><p>[in,out]
+Pointer to the buffer size. On input it contains the size of the buffer.
+On output it will contain the actual size of data copied.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_REPARSE or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>A file or directory can contain a reparse point. A reparse point is data that has
+special meaning to the file system, Windows or user applications. For example, NTFS
+and Windows use reparse points to implement symbolic links. As another example,
+a particular file system may use reparse points to emulate UNIX FIFO's.
+</p>
+<p>Reparse points are a general mechanism for attaching special behavior to files. WinFsp
+supports any kind of reparse point. The symbolic link reparse point however is so
+important for many file systems (especially POSIX ones) that WinFsp implements special
+support for it.
+</p>
+<p>This function is expected to resolve as many reparse points as possible. If a reparse
+point is encountered that is not understood by the file system further reparse point
+resolution should stop; the reparse point data should be returned to the FSD with status
+STATUS_REPARSE/reparse-tag. If a reparse point (symbolic link) is encountered that is
+understood by the file system but points outside it, the reparse point should be
+resolved, but further reparse point resolution should stop; the resolved file name
+should be returned to the FSD with status STATUS_REPARSE/IO_REPARSE.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/SetBasicInfo" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/SetBasicInfo"></a>
+<a id="SetBasicInfo" name="SetBasicInfo"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">SetBasicInfo</h1>
+<div class="function-abstract"><p>Set file or directory basic information.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">SetBasicInfo</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>,
+    <span class="dtyp">UINT32</span> <span class="dpar">FileAttributes</span>, 
+    <span class="dtyp">UINT64</span> <span class="dpar">CreationTime</span>,
+    <span class="dtyp">UINT64</span> <span class="dpar">LastAccessTime</span>,
+    <span class="dtyp">UINT64</span> <span class="dpar">LastWriteTime</span>, 
+    <span class="dtyp">FSP_FSCTL_FILE_INFO</span> <span class="dtyp">*</span><span class="dpar">FileInfo</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file or directory to set information for.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileAttributes</p></td>
+<td class="function-parameter-desc"><p>File attributes to apply to the file or directory. If the value INVALID_FILE_ATTRIBUTES
+is sent, the file attributes should not be changed.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>CreationTime</p></td>
+<td class="function-parameter-desc"><p>Creation time to apply to the file or directory. If the value 0 is sent, the creation
+time should not be changed.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>LastAccessTime</p></td>
+<td class="function-parameter-desc"><p>Last access time to apply to the file or directory. If the value 0 is sent, the last
+access time should not be changed.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>LastWriteTime</p></td>
+<td class="function-parameter-desc"><p>Last write time to apply to the file or directory. If the value 0 is sent, the last
+write time should not be changed.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileInfo</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a structure that will receive the file information on successful return
+from this call. This information includes file attributes, file times, etc.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/SetFileSize" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/SetFileSize"></a>
+<a id="SetFileSize" name="SetFileSize"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">SetFileSize</h1>
+<div class="function-abstract"><p>Set file/allocation size.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">SetFileSize</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>,
+    <span class="dtyp">UINT64</span> <span class="dpar">NewSize</span>,
+    <span class="dtyp">BOOLEAN</span> <span class="dpar">SetAllocationSize</span>, 
+    <span class="dtyp">FSP_FSCTL_FILE_INFO</span> <span class="dtyp">*</span><span class="dpar">FileInfo</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file to set the file/allocation size for.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>NewSize</p></td>
+<td class="function-parameter-desc"><p>New file/allocation size to apply to the file.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>SetAllocationSize</p></td>
+<td class="function-parameter-desc"><p>If TRUE, then the allocation size is being set. if FALSE, then the file size is being set.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileInfo</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a structure that will receive the file information on successful return
+from this call. This information includes file attributes, file times, etc.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>This function is used to change a file's sizes. Windows file systems maintain two kinds
+of sizes: the file size is where the End Of File (EOF) is, and the allocation size is the
+actual size that a file takes up on the "disk".
+</p>
+<p>The rules regarding file/allocation size are:
+</p>
+<ul>
+<li><p>Allocation size must always be aligned to the allocation unit boundary. The allocation
+unit is the product <code>(UINT64)SectorSize * (UINT64)SectorsPerAllocationUnit</code> from
+the FSP_FSCTL_VOLUME_PARAMS structure. The FSD will always send properly aligned allocation
+sizes when setting the allocation size.</p></li>
+<li><p>Allocation size is always greater or equal to the file size.</p></li>
+<li><p>A file size of more than the current allocation size will also extend the allocation
+size to the next allocation unit boundary.</p></li>
+<li><p>An allocation size of less than the current file size should also truncate the current
+file size.</p></li>
+</ul>
+
+</div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/SetReparsePoint" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/SetReparsePoint"></a>
+<a id="SetReparsePoint" name="SetReparsePoint"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">SetReparsePoint</h1>
+<div class="function-abstract"><p>Set reparse point.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">SetReparsePoint</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>, 
+    <span class="dtyp">PWSTR</span> <span class="dpar">FileName</span>,
+    <span class="dtyp">PVOID</span> <span class="dpar">Buffer</span>,
+    <span class="dtyp">SIZE_T</span> <span class="dpar">Size</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the reparse point.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileName</p></td>
+<td class="function-parameter-desc"><p>The file name of the reparse point.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Buffer</p></td>
+<td class="function-parameter-desc"><p>Pointer to a buffer that contains the data for this operation.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Size</p></td>
+<td class="function-parameter-desc"><p>Size of data to write.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>The behavior of this function depends on the value of FSP_FSCTL_VOLUME_PARAMS ::
+SymbolicLinksOnly. If the value of SymbolicLinksOnly is FALSE the file system
+support full reparse points and this function is expected to set the reparse point
+contained in the buffer. If the value of SymbolicLinksOnly is TRUE the file
+system supports symbolic links only as reparse points and this function is
+expected to set the symbolic link path contained in the buffer.
+</p>
+</div>
+<h2 class="function-see">See Also</h2>
+<div class="function-see">
+<a class="function-see" href="#GetReparsePoint">GetReparsePoint</a>
+<br>
+</div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/SetSecurity" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/SetSecurity"></a>
+<a id="SetSecurity" name="SetSecurity"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">SetSecurity</h1>
+<div class="function-abstract"><p>Set file or directory security descriptor.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">SetSecurity</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>, 
+    <span class="dtyp">SECURITY_INFORMATION</span> <span class="dpar">SecurityInformation</span>,
+    <span class="dtyp">PSECURITY_DESCRIPTOR</span> <span class="dpar">SecurityDescriptor</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file or directory to set the security descriptor for.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>SecurityInformation</p></td>
+<td class="function-parameter-desc"><p>Indicates what part of the file or directory security descriptor to change.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>SecurityDescriptor</p></td>
+<td class="function-parameter-desc"><p>Security descriptor to apply to the file or directory. This security descriptor will
+always be in self-relative format.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/SetVolumeLabel" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/SetVolumeLabel"></a>
+<a id="SetVolumeLabel" name="SetVolumeLabel"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">SetVolumeLabel</h1>
+<div class="function-abstract"><p>Set volume label.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">SetVolumeLabel</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PWSTR</span> <span class="dpar">VolumeLabel</span>, 
+    <span class="dtyp">FSP_FSCTL_VOLUME_INFO</span> <span class="dtyp">*</span><span class="dpar">VolumeInfo</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>VolumeLabel</p></td>
+<td class="function-parameter-desc"><p>The new label for the volume.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>VolumeInfo</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a structure that will receive the volume information on successful return
+from this call.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Write" name="//apple_ref/doc/com/intfm/FSP_FILE_SYSTEM_INTERFACE/Write"></a>
+<a id="Write" name="Write"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">Write</h1>
+<div class="function-abstract"><p>Write a file.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">NTSTATUS</span> ( <span class="dtyp">*</span><span class="dfun">Write</span>)(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_REQ</span> <span class="dtyp">*</span><span class="dpar">Request</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">FileNode</span>,
+    <span class="dtyp">PVOID</span> <span class="dpar">Buffer</span>,
+    <span class="dtyp">UINT64</span> <span class="dpar">Offset</span>,
+    <span class="dtyp">ULONG</span> <span class="dpar">Length</span>, 
+    <span class="dtyp">BOOLEAN</span> <span class="dpar">WriteToEndOfFile</span>,
+    <span class="dtyp">BOOLEAN</span> <span class="dpar">ConstrainedIo</span>, 
+    <span class="dtyp">PULONG</span> <span class="dpar">PBytesTransferred</span>,
+    <span class="dtyp">FSP_FSCTL_FILE_INFO</span> <span class="dtyp">*</span><span class="dpar">FileInfo</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system on which this request is posted.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Request</p></td>
+<td class="function-parameter-desc"><p>The request posted by the kernel mode FSD.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileNode</p></td>
+<td class="function-parameter-desc"><p>The file node of the file to be written.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Buffer</p></td>
+<td class="function-parameter-desc"><p>Pointer to a buffer that contains the data to write.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Offset</p></td>
+<td class="function-parameter-desc"><p>Offset within the file to write to.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Length</p></td>
+<td class="function-parameter-desc"><p>Length of data to write.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>WriteToEndOfFile</p></td>
+<td class="function-parameter-desc"><p>When TRUE the file system must write to the current end of file. In this case the Offset
+parameter will contain the value -1.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>ConstrainedIo</p></td>
+<td class="function-parameter-desc"><p>When TRUE the file system must not extend the file (i.e. change the file size).</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PBytesTransferred</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a memory location that will receive the actual number of bytes written.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileInfo</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a structure that will receive the file information on successful return
+from this call. This information includes file attributes, file times, etc.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code. STATUS_PENDING is supported allowing for asynchronous
+operation.
+</p></div>
+</div>
+</details>
+</div>
+</details>
+<h3 class="section">Functions</h3>
+<a id="//apple_ref/c/func/FspFileSystemAddDirInfo" name="//apple_ref/c/func/FspFileSystemAddDirInfo"></a>
+<a id="FspFileSystemAddDirInfo" name="FspFileSystemAddDirInfo"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspFileSystemAddDirInfo</h1>
+<div class="function-abstract"><p>Add directory information to a buffer.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">BOOLEAN</span> <span class="dfun">FspFileSystemAddDirInfo</span>(
+    <span class="dtyp">FSP_FSCTL_DIR_INFO</span> <span class="dtyp">*</span><span class="dpar">DirInfo</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">Buffer</span>,
+    <span class="dtyp">ULONG</span> <span class="dpar">Length</span>,
+    <span class="dtyp">PULONG</span> <span class="dpar">PBytesTransferred</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>DirInfo</p></td>
+<td class="function-parameter-desc"><p>The directory information to add. A value of NULL acts as an EOF marker for a ReadDirectory
+operation.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Buffer</p></td>
+<td class="function-parameter-desc"><p>Pointer to a buffer that will receive the results of the read operation. This should contain
+the same value passed to the ReadDirectory Buffer parameter.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Length</p></td>
+<td class="function-parameter-desc"><p>Length of data to read. This should contain the same value passed to the ReadDirectory
+Length parameter.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PBytesTransferred</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer to a memory location that will receive the actual number of bytes read. This should
+contain the same value passed to the ReadDirectory PBytesTransferred parameter.
+FspFileSystemAddDirInfo uses the value pointed by this parameter to track how much of the
+buffer has been used so far.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>TRUE if the directory information was added, FALSE if there was not enough space to add it.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>This is a helper for implementing the ReadDirectory operation.
+</p>
+</div>
+<h2 class="function-see">See Also</h2>
+<div class="function-see">
+<a class="function-see" href="#ReadDirectory">ReadDirectory</a>
+<br>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspFileSystemCreate" name="//apple_ref/c/func/FspFileSystemCreate"></a>
+<a id="FspFileSystemCreate" name="FspFileSystemCreate"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspFileSystemCreate</h1>
+<div class="function-abstract"><p>Create a file system object.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">NTSTATUS</span> <span class="dfun">FspFileSystemCreate</span>(
+    <span class="dtyp">PWSTR</span> <span class="dpar">DevicePath</span>, 
+    <span class="dkwd">const</span> <span class="dtyp">FSP_FSCTL_VOLUME_PARAMS</span> <span class="dtyp">*</span><span class="dpar">VolumeParams</span>, 
+    <span class="dkwd">const</span> <span class="dtyp">FSP_FILE_SYSTEM_INTERFACE</span> <span class="dtyp">*</span><span class="dpar">Interface</span>, 
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dtyp">*</span><span class="dpar">PFileSystem</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>DevicePath</p></td>
+<td class="function-parameter-desc"><p>The name of the control device for this file system. This must be either
+FSP_FSCTL_DISK_DEVICE_NAME or FSP_FSCTL_NET_DEVICE_NAME.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>VolumeParams</p></td>
+<td class="function-parameter-desc"><p>Volume parameters for the newly created file system.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Interface</p></td>
+<td class="function-parameter-desc"><p>A pointer to the actual operations that actually implement this user mode file system.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PFileSystem</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer that will receive the file system object created on successful return from this
+call.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspFileSystemDelete" name="//apple_ref/c/func/FspFileSystemDelete"></a>
+<a id="FspFileSystemDelete" name="FspFileSystemDelete"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspFileSystemDelete</h1>
+<div class="function-abstract"><p>Delete a file system object.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspFileSystemDelete</span>(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system object.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspFileSystemRemoveMountPoint" name="//apple_ref/c/func/FspFileSystemRemoveMountPoint"></a>
+<a id="FspFileSystemRemoveMountPoint" name="FspFileSystemRemoveMountPoint"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspFileSystemRemoveMountPoint</h1>
+<div class="function-abstract"><p>Remove the mount point for a file system.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspFileSystemRemoveMountPoint</span>(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system object.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspFileSystemSendResponse" name="//apple_ref/c/func/FspFileSystemSendResponse"></a>
+<a id="FspFileSystemSendResponse" name="FspFileSystemSendResponse"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspFileSystemSendResponse</h1>
+<div class="function-abstract"><p>Send a response to the FSD.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspFileSystemSendResponse</span>(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FSCTL_TRANSACT_RSP</span> <span class="dtyp">*</span><span class="dpar">Response</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system object.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Response</p></td>
+<td class="function-parameter-desc"><p>The response buffer.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>This call is not required when the user mode file system performs synchronous processing of
+requests. It is possible however for the following FSP_FILE_SYSTEM_INTERFACE operations to be
+processed asynchronously:
+</p>
+<ul>
+<li><p>Read</p></li>
+<li><p>Write</p></li>
+<li><p>ReadDirectory</p></li>
+</ul>
+
+<p>These operations are allowed to return STATUS_PENDING to postpone sending a response to the FSD.
+At a later time the file system can use FspFileSystemSendResponse to send the response.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspFileSystemSetMountPoint" name="//apple_ref/c/func/FspFileSystemSetMountPoint"></a>
+<a id="FspFileSystemSetMountPoint" name="FspFileSystemSetMountPoint"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspFileSystemSetMountPoint</h1>
+<div class="function-abstract"><p>Set the mount point for a file system.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">NTSTATUS</span> <span class="dfun">FspFileSystemSetMountPoint</span>(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>,
+    <span class="dtyp">PWSTR</span> <span class="dpar">MountPoint</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system object.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>MountPoint</p></td>
+<td class="function-parameter-desc"><p>The mount point for the new file system. A value of NULL means that the file system should
+use the next available drive letter counting downwards from Z: as its mount point.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>This function currently only supports drive letters (X:) as mount points. Refer to the
+documentation of the DefineDosDevice Windows API to better understand how drive letters are
+created.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/winfsp.h/FspFileSystemSetOperationGuardStrategy" name="//apple_ref/c/func/winfsp.h/FspFileSystemSetOperationGuardStrategy"></a>
+<a id="FspFileSystemSetOperationGuardStrategy" name="FspFileSystemSetOperationGuardStrategy"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspFileSystemSetOperationGuardStrategy</h1>
+<div class="function-abstract"><p>Set file system locking strategy.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dkwd">static</span> <span class="dkwd">inline</span> <span class="dtyp">VOID</span> <span class="dfun">FspFileSystemSetOperationGuardStrategy</span>(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>, 
+    <span class="dtyp">FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY</span> <span class="dpar">GuardStrategy</span>) 
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system object.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>GuardStrategy</p></td>
+<td class="function-parameter-desc"><p>The locking (guard) strategy.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-see">See Also</h2>
+<div class="function-see">
+<a class="function-see" href="#FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY">FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY</a>
+<br>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspFileSystemStartDispatcher" name="//apple_ref/c/func/FspFileSystemStartDispatcher"></a>
+<a id="FspFileSystemStartDispatcher" name="FspFileSystemStartDispatcher"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspFileSystemStartDispatcher</h1>
+<div class="function-abstract"><p>Start the file system dispatcher.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">NTSTATUS</span> <span class="dfun">FspFileSystemStartDispatcher</span>(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>,
+    <span class="dtyp">ULONG</span> <span class="dpar">ThreadCount</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system object.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>ThreadCount</p></td>
+<td class="function-parameter-desc"><p>The number of threads for the file system dispatcher. A value of 0 will create a default
+number of threads and should be chosen in most cases.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>The file system dispatcher is used to dispatch operations posted by the FSD to the user mode
+file system. Once this call starts executing the user mode file system will start receiving
+file system requests from the kernel.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspFileSystemStopDispatcher" name="//apple_ref/c/func/FspFileSystemStopDispatcher"></a>
+<a id="FspFileSystemStopDispatcher" name="FspFileSystemStopDispatcher"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspFileSystemStopDispatcher</h1>
+<div class="function-abstract"><p>Stop the file system dispatcher.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspFileSystemStopDispatcher</span>(
+    <span class="dtyp">FSP_FILE_SYSTEM</span> <span class="dtyp">*</span><span class="dpar">FileSystem</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>FileSystem</p></td>
+<td class="function-parameter-desc"><p>The file system object.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</details>
+<h3 class="section">Typedefs</h3>
+<a id="//apple_ref/c/tdef/FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY" name="//apple_ref/c/tdef/FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY"></a>
+<a id="FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY" name="FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="typedef-name">FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY</h1>
+<div class="typedef-abstract"><p>User mode file system locking strategy.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="typedef-declaration">
+<span class="dkwd">typedef</span> <span class="dkwd">enum</span> { 
+    <span class="dvar">FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY_FINE</span> = <span class="dnum">0</span>, 
+    <span class="dvar">FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY_COARSE</span>, 
+} <span class="dvar">FSP_FILE_SYSTEM_OPERATION_GUARD_STRATEGY</span>;  
+</pre>
+<h2 class="typedef-desc">Discussion</h2>
+<div class="typedef-desc"><p>Two concurrency models are provided:
+</p>
+<p>1. A fine-grained concurrency model where file system NAMESPACE accesses
+are guarded using an exclusive-shared (read-write) lock. File I/O is not
+guarded and concurrent reads/writes/etc. are possible. [Note that the FSD
+will still apply an exclusive-shared lock PER INDIVIDUAL FILE, but it will
+not limit I/O operations for different files.]
+The fine-grained concurrency model applies the exclusive-shared lock as
+follows:
+</p>
+<ul>
+<li><p>EXCL: SetVolumeLabel, Create, Cleanup(Delete), SetInformation(Rename)</p></li>
+<li><p>SHRD: GetVolumeInfo, Open, SetInformation(Disposition), ReadDirectory</p></li>
+<li><p>NONE: all other operations</p></li>
+</ul>
+
+<p>2. A coarse-grained concurrency model where all file system accesses are
+guarded by a mutually exclusive lock.
+</p></div>
+<h2 class="typedef-see">See Also</h2>
+<div class="typedef-see">
+<a class="typedef-see" href="#FspFileSystemSetOperationGuardStrategy">FspFileSystemSetOperationGuardStrategy</a>
+<br>
+</div>
+</div>
+</details>
+<h2 class="groupinfo-groupinfo-name">Service Framework</h2>
+<div class="groupinfo-groupinfo-abstract"><p>User mode file systems typically are run as Windows services. WinFsp provides an API to make
+the creation of Windows services easier. This API is provided for convenience and is not
+necessary to expose a user mode file system to Windows.</p></div>
+<h3 class="section">Functions</h3>
+<a id="//apple_ref/c/func/FspServiceAcceptControl" name="//apple_ref/c/func/FspServiceAcceptControl"></a>
+<a id="FspServiceAcceptControl" name="FspServiceAcceptControl"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceAcceptControl</h1>
+<div class="function-abstract"><p>Configure the control codes that a service accepts.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspServiceAcceptControl</span>(
+    <span class="dtyp">FSP_SERVICE</span> <span class="dtyp">*</span><span class="dpar">Service</span>,
+    <span class="dtyp">ULONG</span> <span class="dpar">Control</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Service</p></td>
+<td class="function-parameter-desc"><p>The service object.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Control</p></td>
+<td class="function-parameter-desc"><p>The control codes to accept. Note that the SERVICE_ACCEPT_PAUSE_CONTINUE code is silently
+ignored.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>This API should be used prior to Start operations.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceAllowConsoleMode" name="//apple_ref/c/func/FspServiceAllowConsoleMode"></a>
+<a id="FspServiceAllowConsoleMode" name="FspServiceAllowConsoleMode"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceAllowConsoleMode</h1>
+<div class="function-abstract"><p>Allow a service to run in console mode.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspServiceAllowConsoleMode</span>(
+    <span class="dtyp">FSP_SERVICE</span> <span class="dtyp">*</span><span class="dpar">Service</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Service</p></td>
+<td class="function-parameter-desc"><p>The service object.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>A service that is run in console mode runs with a console attached and outside the control of
+the Service Control Manager. This is useful for debugging and testing a service during
+development.
+</p>
+<p>User mode file systems that wish to use the WinFsp Launcher functionality must also use this
+call. The WinFsp Launcher is a Windows service that can be configured to launch and manage
+multiple instances of a user mode file system.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceCreate" name="//apple_ref/c/func/FspServiceCreate"></a>
+<a id="FspServiceCreate" name="FspServiceCreate"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceCreate</h1>
+<div class="function-abstract"><p>Create a service object.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">NTSTATUS</span> <span class="dfun">FspServiceCreate</span>(
+    <span class="dtyp">PWSTR</span> <span class="dpar">ServiceName</span>, 
+    <span class="dtyp">FSP_SERVICE_START</span> <span class="dtyp">*</span><span class="dpar">OnStart</span>, 
+    <span class="dtyp">FSP_SERVICE_STOP</span> <span class="dtyp">*</span><span class="dpar">OnStop</span>, 
+    <span class="dtyp">FSP_SERVICE_CONTROL</span> <span class="dtyp">*</span><span class="dpar">OnControl</span>, 
+    <span class="dtyp">FSP_SERVICE</span> <span class="dtyp">*</span><span class="dtyp">*</span><span class="dpar">PService</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>ServiceName</p></td>
+<td class="function-parameter-desc"><p>The name of the service.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>OnStart</p></td>
+<td class="function-parameter-desc"><p>Function to call when the service starts.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>OnStop</p></td>
+<td class="function-parameter-desc"><p>Function to call when the service stops.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>OnControl</p></td>
+<td class="function-parameter-desc"><p>Function to call when the service receives a service control code.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>PService</p></td>
+<td class="function-parameter-desc"><p>[out]
+Pointer that will receive the service object created on successful return from this
+call.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceDelete" name="//apple_ref/c/func/FspServiceDelete"></a>
+<a id="FspServiceDelete" name="FspServiceDelete"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceDelete</h1>
+<div class="function-abstract"><p>Delete a service object.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspServiceDelete</span>(
+    <span class="dtyp">FSP_SERVICE</span> <span class="dtyp">*</span><span class="dpar">Service</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Service</p></td>
+<td class="function-parameter-desc"><p>The service object.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceGetExitCode" name="//apple_ref/c/func/FspServiceGetExitCode"></a>
+<a id="FspServiceGetExitCode" name="FspServiceGetExitCode"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceGetExitCode</h1>
+<div class="function-abstract"><p>Get the service process exit code.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">ULONG</span> <span class="dfun">FspServiceGetExitCode</span>(
+    <span class="dtyp">FSP_SERVICE</span> <span class="dtyp">*</span><span class="dpar">Service</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Service</p></td>
+<td class="function-parameter-desc"><p>The service object.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>Service process exit code.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceIsInteractive" name="//apple_ref/c/func/FspServiceIsInteractive"></a>
+<a id="FspServiceIsInteractive" name="FspServiceIsInteractive"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceIsInteractive</h1>
+<div class="function-abstract"><p>Determine if the current process is running in user interactive mode.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">BOOLEAN</span> <span class="dfun">FspServiceIsInteractive</span>(
+    <span class="dpar">VOID</span>);  
+</pre>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>TRUE if the process is running in running user interactive mode.
+</p></div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceLog" name="//apple_ref/c/func/FspServiceLog"></a>
+<a id="FspServiceLog" name="FspServiceLog"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceLog</h1>
+<div class="function-abstract"><p>Log a service message.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspServiceLog</span>(
+    <span class="dtyp">ULONG</span> <span class="dpar">Type</span>,
+    <span class="dtyp">PWSTR</span> <span class="dpar">Format</span>,
+    ...);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Type</p></td>
+<td class="function-parameter-desc"><p>One of EVENTLOG_INFORMATION_TYPE, EVENTLOG_WARNING_TYPE, EVENTLOG_ERROR_TYPE.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Format</p></td>
+<td class="function-parameter-desc"><p>Format specification. This function uses the Windows wsprintf API for formatting. Refer to
+that API's documentation for details on the format specification.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>This function can be used to log an arbitrary message to the Windows Event Log or to the current
+console if running in user interactive mode.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceLoop" name="//apple_ref/c/func/FspServiceLoop"></a>
+<a id="FspServiceLoop" name="FspServiceLoop"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceLoop</h1>
+<div class="function-abstract"><p>Run a service main loop.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">NTSTATUS</span> <span class="dfun">FspServiceLoop</span>(
+    <span class="dtyp">FSP_SERVICE</span> <span class="dtyp">*</span><span class="dpar">Service</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Service</p></td>
+<td class="function-parameter-desc"><p>The service object.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>This function starts and runs a service. It executes the Windows StartServiceCtrlDispatcher API
+to connect the service process to the Service Control Manager. If the Service Control Manager is
+not available (and console mode is allowed) it will enter console mode.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceRequestTime" name="//apple_ref/c/func/FspServiceRequestTime"></a>
+<a id="FspServiceRequestTime" name="FspServiceRequestTime"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceRequestTime</h1>
+<div class="function-abstract"><p>Request additional time from the Service Control Manager.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspServiceRequestTime</span>(
+    <span class="dtyp">FSP_SERVICE</span> <span class="dtyp">*</span><span class="dpar">Service</span>,
+    <span class="dtyp">ULONG</span> <span class="dpar">Time</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Service</p></td>
+<td class="function-parameter-desc"><p>The service object.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Time</p></td>
+<td class="function-parameter-desc"><p>Additional time (in milliseconds).</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>This API should be used during Start and Stop operations only.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceRunEx" name="//apple_ref/c/func/FspServiceRunEx"></a>
+<a id="FspServiceRunEx" name="FspServiceRunEx"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceRunEx</h1>
+<div class="function-abstract"><p>Run a service.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">ULONG</span> <span class="dfun">FspServiceRunEx</span>(
+    <span class="dtyp">PWSTR</span> <span class="dpar">ServiceName</span>, 
+    <span class="dtyp">FSP_SERVICE_START</span> <span class="dtyp">*</span><span class="dpar">OnStart</span>, 
+    <span class="dtyp">FSP_SERVICE_STOP</span> <span class="dtyp">*</span><span class="dpar">OnStop</span>, 
+    <span class="dtyp">FSP_SERVICE_CONTROL</span> <span class="dtyp">*</span><span class="dpar">OnControl</span>, 
+    <span class="dtyp">PVOID</span> <span class="dpar">UserContext</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>ServiceName</p></td>
+<td class="function-parameter-desc"><p>The name of the service.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>OnStart</p></td>
+<td class="function-parameter-desc"><p>Function to call when the service starts.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>OnStop</p></td>
+<td class="function-parameter-desc"><p>Function to call when the service stops.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>OnControl</p></td>
+<td class="function-parameter-desc"><p>Function to call when the service receives a service control code.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>Service process exit code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>This function wraps calls to FspServiceCreate, FspServiceLoop and FspServiceDelete to create,
+run and delete a service. It is intended to be used from a service's main/wmain function.
+</p>
+<p>This function runs a service with console mode allowed.
+</p>
+</div>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceSetExitCode" name="//apple_ref/c/func/FspServiceSetExitCode"></a>
+<a id="FspServiceSetExitCode" name="FspServiceSetExitCode"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceSetExitCode</h1>
+<div class="function-abstract"><p>Set the service process exit code.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspServiceSetExitCode</span>(
+    <span class="dtyp">FSP_SERVICE</span> <span class="dtyp">*</span><span class="dpar">Service</span>,
+    <span class="dtyp">ULONG</span> <span class="dpar">ExitCode</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Service</p></td>
+<td class="function-parameter-desc"><p>The service object.</p></td>
+</tr>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>ExitCode</p></td>
+<td class="function-parameter-desc"><p>Service process exit code.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</details>
+<a id="//apple_ref/c/func/FspServiceStop" name="//apple_ref/c/func/FspServiceStop"></a>
+<a id="FspServiceStop" name="FspServiceStop"></a>
+<details>
+<summary>
+<div class="summary">
+<h1 class="function-name">FspServiceStop</h1>
+<div class="function-abstract"><p>Stops a running service.
+</p>
+</div>
+</div>
+</summary>
+<div class="collapsible">
+<div class="pointy-thing"></div>
+<pre class="function-declaration">
+<span class="dtyp">FSP_API</span> <span class="dtyp">VOID</span> <span class="dfun">FspServiceStop</span>(
+    <span class="dtyp">FSP_SERVICE</span> <span class="dtyp">*</span><span class="dpar">Service</span>);  
+</pre>
+<h2 class="function-parameterlist">Parameters</h2>
+<table class="function-parameterlist">
+<tbody>
+<tr class="function-parameter">
+<td class="function-parameter-name"><p>Service</p></td>
+<td class="function-parameter-desc"><p>The service object.</p></td>
+</tr>
+</tbody>
+</table>
+<h2 class="function-result">Return Value</h2>
+<div class="function-result"><p>STATUS_SUCCESS or error code.
+</p></div>
+<h2 class="function-desc">Discussion</h2>
+<div class="function-desc"><p>Stopping a service usually happens when the Service Control Manager instructs the service to
+stop. In some situations (e.g. fatal errors) the service may wish to stop itself. It can do so
+in a clean manner by calling this function.
+</p>
+</div>
+</div>
+</details>
+<div class="copyright">
+Copyright © 2015-2016 Bill Zissimopoulos
+
+&nbsp;|&nbsp;
+Updated: 2016-07-22
+</div>
+</div>
+</body>
+</html>
