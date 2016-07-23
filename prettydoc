@@ -77,6 +77,8 @@
 # ---------
 # (C) 2014-2015 Bill Zissimopoulos
 
+headerdoc_path = "headerdoc/.build/dist/usr/bin/headerdoc2html"
+
 import argparse
 import os
 import pytempl
@@ -204,7 +206,7 @@ def run():
             tmpdir = tempfile.mkdtemp()
             env = os.environ.copy()
             env["PERL_PERTURB_KEYS"] = "0"
-            subprocess.check_call(["headerdoc2html", "-qjX", "-o", tmpdir] +\
+            subprocess.check_call([args.headerdoc_path, "-qjX", "-o", tmpdir] +\
                 args.headerdoc_arg + sources, env=env)
         for path in args.file:
             try:
@@ -281,6 +283,8 @@ def main():
         help="Where to place the resulting files")
     p.add_argument("-H", "--headerdoc-arg", action="append", default=[],
         help="Additional arguments to pass to headerdoc")
+    p.add_argument("--headerdoc-path", default=os.path.join(progdir, headerdoc_path),
+        help="Path to headerdoc")
     p.add_argument("-S", "--stylesheet",
         help="CSS stylesheet to use")
     p.add_argument("-T", "--template",
@@ -294,6 +298,8 @@ def main():
         args.template = os.path.join(progdir,
             "prettydoc-templ", args.output_format + ".pyt")
     args.template = pytempl.template_load(args.template)
+    if not os.access(args.headerdoc_path, os.X_OK):
+        raise IOError(2, "headerdoc not found")
     run()
 
 def __entry():
