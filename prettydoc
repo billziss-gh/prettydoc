@@ -52,7 +52,8 @@
 # *Prettydoc* invokes *headerdoc2html* with the *-j* (allow javadoc-style
 # comments) and *-X* (produce XML) options. It then processes the XML
 # output and feeds it into its template engine, which allows for output in
-# various formats. The currently supported formats are html, man, markdown.
+# various formats. The currently supported formats are html, man, asciidoc,
+# markdown.
 #
 # PYTHON TEMPLATE LANGUAGE
 # ------------------------
@@ -91,7 +92,7 @@
 #     Include empty source code groups in output
 # -t, --scm-timestamp::
 #     Use SCM timestamp as "last updated" (currently only git supported)
-# -f {html,man,markdown}, --output-format {html,man,markdown}::
+# -f {html,man,asciidoc,markdown}, --output-format {html,man,asciidoc,markdown}::
 #     Output format to use
 # -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY::
 #     Where to place the resulting files
