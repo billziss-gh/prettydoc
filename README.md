@@ -2,7 +2,12 @@
 
 Prettydoc is a simple tool that I use to create Apple-like documentation.
 You can see a working example [here](http://www.secfs.net/winfsp/apiref/).
-Prettydoc can produce output in different formats: html, manpage, markdown.
+Prettydoc can produce output in different formats:
+
+* asciidoc
+* html
+* manpage
+* markdown
 
 Prettydoc is a wrapper around Apple's headerdoc.
 The project includes a patched version of headerdoc as a submodule.
