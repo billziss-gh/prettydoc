@@ -17,6 +17,16 @@ def section(pass_, elem, title):
     :
 
 def item_head(pass_, elem):
+    desi = ""
+    if "category" == elem.tag:
+        desi = "Category "
+    elif "protocol" == elem.tag:
+        desi = "Protocol "
+    elif "method" == elem.tag and "occ" == elem.get("lang"):
+        if "instm" == elem.get("type"):
+            desi = "- "
+        elif "clm" == elem.get("type"):
+            desi = "+ "
     name = pretty_text(elem.find("name"))
     abst = pretty_text(elem.find("abstract"))
     if elem.tag in ["framework"]:
@@ -45,10 +55,10 @@ def item_head(pass_, elem):
             :
     else:
         if abst:
-            : **${name}** - ${abst}
+            : **${desi}${name}** - ${abst}
             :
         else:
-            : **${name}**
+            : **${desi}${name}**
             :
 def item(pass_, elem):
     if "toc" == pass_:

@@ -25,6 +25,16 @@ def item_head(pass_, elem):
         "method", "property", "function", "variable",
         "constant", "struct", "union", "enum",
         "typedef", "pdefine"]
+    desi = ""
+    if "category" == elem.tag:
+        desi = "Category "
+    elif "protocol" == elem.tag:
+        desi = "Protocol "
+    elif "method" == elem.tag and "occ" == elem.get("lang"):
+        if "instm" == elem.get("type"):
+            desi = "- "
+        elif "clm" == elem.get("type"):
+            desi = "+ "
     name = pretty_text(elem.find("name"))
     abst = pretty_text(elem.find("abstract"))
     : <a id="${elem.get("id")}" name="${elem.get("id")}"></a>
@@ -33,7 +43,7 @@ def item_head(pass_, elem):
         : <details>
         : <summary>
         : <div class="summary">
-        : <h1 class="${elem.tag}-name">${name}</h1>
+        : <h1 class="${elem.tag}-name">${desi}${name}</h1>
         if abst:
             : <div class="${elem.tag}-abstract">${abst}</div>
         : </div>
@@ -42,7 +52,7 @@ def item_head(pass_, elem):
         : <div class="pointy-thing"></div>
     else:
         : <div class="summary">
-        : <h1 class="${elem.tag}-name">${name}</h1>
+        : <h1 class="${elem.tag}-name">${desi}${name}</h1>
         if abst:
             : <div class="${elem.tag}-abstract">${abst}</div>
         : </div>
