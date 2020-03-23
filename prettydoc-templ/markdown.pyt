@@ -4,7 +4,7 @@ def head(elem):
     pass
 
 def group(pass_, elem):
-    : ### ${elem.findtext("name").upper()}
+    : ## ${elem.findtext("name").upper()}
     :
     if elem.find("abstract") is not None:
         : ${pretty_text(elem.find("abstract"))}
@@ -13,10 +13,18 @@ def group(pass_, elem):
         : ${pretty_text(elem.find("desc"))}
         :
 def section(pass_, elem, title):
-    : #### ${title.upper()}
+    if elem.tag not in ["class", "category", "protocol", "com_interface"]:
+        : ### ${title}
+    else:
+        : #### ${title}
     :
 
 def item_head(pass_, elem):
+    collapsible = elem.tag in [
+        "class", "category", "protocol", "com_interface",
+        "method", "property", "function", "variable",
+        "constant", "struct", "union", "enum",
+        "typedef", "pdefine"]
     desi = ""
     if "category" == elem.tag:
         desi = "Category "
@@ -29,30 +37,30 @@ def item_head(pass_, elem):
             desi = "+ "
     name = pretty_text(elem.find("name"))
     abst = pretty_text(elem.find("abstract"))
-    if elem.tag in ["framework"]:
-        if "main" == pass_:
-            : # ${name}
-            :
-            if abst:
-                : ${abst}
-                :
-        else:
-            : ## DESCRIPTION
-            :
-    elif elem.tag in ["header"]:
+    if elem.tag in ["framework", "header"]:
         global lang
         lang = elem.get("lang")
-        if "toc" == pass_:
-            : # ${name}
+        copyright = pretty_text(elem.find("copyrightinfo"))
+        : # ${name}
+        if copyright:
+            : <!-- author: ${copyright} -->
+        :
+        if abst:
+            : ${abst}
             :
-            if abst:
-                : ${abst}
-                :
-            : ## SYNOPSIS
-            :
+    elif collapsible:
+        html_name = html_pretty_text(elem.find("name"))
+        html_abst = html_pretty_text(elem.find("abstract"))
+        : <details>
+        : <summary>
+        if abst:
+            : <b>${desi}${html_name}</b> - ${html_abst}
         else:
-            : ## DESCRIPTION
-            :
+            : <b>${desi}${html_name}</b>
+        : </summary>
+        : <blockquote>
+        : <br/>
+        :
     else:
         if abst:
             : **${desi}${name}** - ${abst}
@@ -61,8 +69,6 @@ def item_head(pass_, elem):
             : **${desi}${name}**
             :
 def item(pass_, elem):
-    if "toc" == pass_:
-        return
     if elem.tag in [
         "method", "property", "function", "variable",
         "constant", "struct", "union", "enum",
@@ -108,18 +114,19 @@ def item(pass_, elem):
                     : - ${pretty_text(f)}
                 :
 def item_foot(pass_, elem):
-    if "toc" == pass_:
-        return
-    if not elem.tag in ["header", "framework"]:
-        : --------
+    collapsible = elem.tag in [
+        "class", "category", "protocol", "com_interface",
+        "method", "property", "function", "variable",
+        "constant", "struct", "union", "enum",
+        "typedef", "pdefine"]
+    if collapsible:
+        :
+        : </blockquote>
+        : </details>
     :
 
 def foot(elem):
-    copyright = pretty_text(elem.find("copyrightinfo"))
-    if copyright:
-        : ## COPYRIGHT
-        :
-        : ${copyright}
+    pass
 
 pretty_text_map = {
     "hd_link": lambda e: "[%s](%s)%s" % (e.text, pretty_link(e), e.tail or ""),
@@ -165,15 +172,25 @@ def pretty_declaration(elem):
     text = "".join([(e.text or "") + (e.tail or "") for e in elem])
     if text:
         if lang:
-            text = ":::%s\n" % lang + text
-        text = "    " + "\n    ".join(text.split("\n"))
-        text = text.rstrip()
+            text = "```%s\n" %lang + text + "\n```"
+        else:
+            text = "```\n" + text + "\n```"
     return text
+
+def html_pretty_text_append(l, elem):
+    if hasattr(elem, "text"):
+        html_pretty_text_append(l, elem.text or "")
+        for e in elem:
+            html_pretty_text_append(l, e)
+            html_pretty_text_append(l, e.tail or "")
+    else:
+        l.append((elem or "").replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;"))
+def html_pretty_text(elem):
+    l = []
+    html_pretty_text_append(l, elem)
+    return "".join(l).strip()
 
 def file_extension():
     return ".markdown"
 def passes(elem):
-    if elem.tag == "framework":
-        return ["main"]
-    else:
-        return ["toc", "main"]
+    return ["main"]
