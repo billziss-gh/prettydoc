@@ -1,5 +1,4 @@
 # winfsp/winfsp.h
-<!-- author: (C) 2015-2016 Bill Zissimopoulos -->
 
 WinFsp User Mode API.
 
@@ -1637,3 +1636,13 @@ in a clean manner by calling this function.
 </details>
 
 
+<br/>
+<p align="center">
+<sub>
+Copyright © 2015-2016 Bill Zissimopoulos
+&nbsp;|&nbsp;
+Updated: 2016-07-22
+<br/>
+Generated with <a href="https://github.com/billziss-gh/prettydoc">prettydoc</a>
+</sub>
+</p>

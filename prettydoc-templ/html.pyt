@@ -120,7 +120,8 @@ def item_foot(pass_, elem):
 def foot(elem):
     copyright = pretty_text(elem.find("copyrightinfo"))
     timestamp = pretty_text(elem.find("timestamp"))
-    if copyright or timestamp:
+    generator = pretty_text(elem.find("generator"))
+    if copyright or timestamp or generator:
         : <div class="copyright">
         if copyright:
             : Copyright ${copyright}
@@ -128,6 +129,10 @@ def foot(elem):
             : &nbsp;|&nbsp;
         if timestamp:
             : Updated: ${timestamp}
+        if (copyright or timestamp) and generator:
+            : <br/>
+        if generator:
+            : Generated with <a href="https://github.com/billziss-gh/prettydoc">prettydoc</a>
         : </div>
     : </div>
     : </body>

@@ -42,8 +42,6 @@ def item_head(pass_, elem):
         lang = elem.get("lang")
         copyright = pretty_text(elem.find("copyrightinfo"))
         : # ${name}
-        if copyright:
-            : <!-- author: ${copyright} -->
         :
         if abst:
             : ${abst}
@@ -126,7 +124,25 @@ def item_foot(pass_, elem):
     :
 
 def foot(elem):
-    pass
+    copyright = html_pretty_text(elem.find("copyrightinfo"))
+    timestamp = html_pretty_text(elem.find("timestamp"))
+    generator = html_pretty_text(elem.find("generator"))
+    if copyright or timestamp or generator:
+        : <br/>
+        : <p align="center">
+        : <sub>
+        if copyright:
+            : Copyright ${copyright}
+        if copyright and timestamp:
+            : &nbsp;|&nbsp;
+        if timestamp:
+            : Updated: ${timestamp}
+        if (copyright or timestamp) and generator:
+            : <br/>
+        if generator:
+            : Generated with <a href="https://github.com/billziss-gh/prettydoc">prettydoc</a>
+        : </sub>
+        : </p>
 
 pretty_text_map = {
     "hd_link": lambda e: "[%s](%s)%s" % (e.text, pretty_link(e), e.tail or ""),
